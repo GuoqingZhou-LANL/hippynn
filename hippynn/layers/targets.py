@@ -174,7 +174,7 @@ class HBondSymmetric(torch.nn.Module):
 
         sense_vals = self.sensitivity(pair_dist)
 
-        n_d, n_t, n_f, _ = self.weights[0].shape
+        # n_d, n_t, n_f, _ = self.weights[0].shape
         # These are the contributions for each bond at a given sensitivity distance
         # bilinear takes shape (pair,feature1),(pair,feature2),(ndist*n_target,feature1,feature2)
         # and sums to pair,(ndist*n_target), which is reshaped.
