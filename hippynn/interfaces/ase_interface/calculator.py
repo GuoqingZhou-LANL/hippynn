@@ -311,15 +311,15 @@ class HippynnCalculator(interface.Calculator):
         # Get variables from atoms. Unsqueeze is to add batch axis.
         positions = torch.as_tensor(self.atoms.positions).unsqueeze(0)
         # Convert from ASE distance (angstrom) to whatever the network uses.
-        positions = positions/self.dist_unit
-        species = torch.as_tensor(self.atoms.numbers).unsqueeze(0)
-        cell = torch.as_tensor(self.atoms.cell)  #Oddity.. try to fix externalneighbors to take same shape as internal
+        positions = positions.double()/self.dist_unit
+        species = torch.as_tensor(self.atoms.numbers).unsqueeze(0).long()
+        cell = torch.as_tensor(self.atoms.cell).double()  #Oddity.. try to fix externalneighbors to take same shape as internal
 
         # Get pair first and second from neighbors list
 
-        pair_first = torch.as_tensor(self.nl.nl.pair_first)
-        pair_second = torch.as_tensor(self.nl.nl.pair_second)
-        pair_shiftvecs = torch.as_tensor(self.nl.nl.offset_vec)
+        pair_first = torch.as_tensor(self.nl.nl.pair_first).long()
+        pair_second = torch.as_tensor(self.nl.nl.pair_second).long()
+        pair_shiftvecs = torch.as_tensor(self.nl.nl.offset_vec).double()
 
         # This order must be synchronized with function setup_ase_graph above
         inputs = species, positions, cell, pair_first, pair_second, pair_shiftvecs
