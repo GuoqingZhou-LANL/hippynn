@@ -147,24 +147,30 @@ class HBondSymmetric(torch.nn.Module):
         self.positive = positive
         self.n_target = n_target
         self.n_dist = n_dist
-        if positive:
-            self.biases = torch.nn.ParameterList(
-            torch.nn.Parameter(torch.zeros(n_target)) for _ in feature_sizes)
+        if self.antisymmetric:
+            self.layers = torch.nn.ModuleList( [torch.nn.Bilinear(nf, nf, n_dist*n_target, bias=False) for nf in feature_sizes ] )
         else:
-            self.biases = None
+            self.layers = torch.nn.ModuleList( [torch.nn.Bilinear(nf, nf, n_dist*n_target, bias=True) for nf in feature_sizes ] )
 
-        self.weights = torch.nn.ParameterList(
-            torch.nn.Parameter(torch.zeros(n_dist, n_target, nf, nf)) for nf in feature_sizes)
-        for p in self.weights:
-            torch.nn.init.xavier_normal_(p.data)
+        # if positive:
+        #     self.biases = torch.nn.ParameterList(
+        #     torch.nn.Parameter(torch.zeros(n_target)) for _ in feature_sizes)
+        # else:
+        #     self.biases = None
+
+        # self.weights = torch.nn.ParameterList(
+        #     torch.nn.Parameter(torch.zeros(n_dist, n_target, nf, nf)) for nf in feature_sizes)
+        # for p in self.weights:
+        #     torch.nn.init.xavier_normal_(p.data)
 
     def forward(self,all_features,pair_first,pair_second,pair_dist):
 
-        weights = self.weights
-        if self.symmetric:
-            weights = [w + w.transpose(2,3) for w in weights]
-        if self.antisymmetric:
-            weights = [w - w.transpose(2,3) for w in weights]
+        # weights = self.weights
+        # if self.symmetric:
+        #     weights = [w + w.transpose(2,3) for w in weights]
+        # if self.antisymmetric:
+        #     weights = [w - w.transpose(2,3) for w in weights]
+        # symmetric/antisymmetric is better to be taken care of in other module
 
         sense_vals = self.sensitivity(pair_dist)
 
@@ -172,18 +178,21 @@ class HBondSymmetric(torch.nn.Module):
         # These are the contributions for each bond at a given sensitivity distance
         # bilinear takes shape (pair,feature1),(pair,feature2),(ndist*n_target,feature1,feature2)
         # and sums to pair,(ndist*n_target), which is reshaped.
-        partial_bond_dists = [
-            torch.nn.functional.bilinear(f[pair_first],
-                                         f[pair_second],
-                                         w.reshape(self.n_dist*self.n_target,f.shape[-1],f.shape[-1]),
-                                         bias=None).reshape(-1,self.n_dist,self.n_target)
-            for f,w in zip(all_features,weights)]
+        # partial_bond_dists = [
+        #     torch.nn.functional.bilinear(f[pair_first],
+        #                                  f[pair_second],
+        #                                  w.reshape(self.n_dist*self.n_target,f.shape[-1],f.shape[-1]),
+        #                                  bias=None).reshape(-1,self.n_dist,self.n_target)
+        #     for f,w in zip(all_features,weights)]
+        partial_bonds = [ ( layer(f[pair_first], f[pair_second]).reshape(-1,self.n_dist, self.n_target) \
+                                *sense_vals.unsqueeze(2)
+                            ).sum(dim=1) for f, layer in zip(all_features, self.layers)]
 
         # These are the contributions for each bond
         # multiply pair,ndist by pair,ndist,n_targets
-        partial_bonds = [
-            (pbd*sense_vals.unsqueeze(2)).sum(dim=1)
-            for pbd in partial_bond_dists]
+        # partial_bonds = [
+        #     (pbd*sense_vals.unsqueeze(2)).sum(dim=1)
+        #     for pbd in partial_bond_dists]
         # NOTE:
         # Einsum implementation of combined partial_bond_dists and partial_bond operations, seems to be slower.
         # But leaving this comment here for readability.
@@ -192,8 +201,8 @@ class HBondSymmetric(torch.nn.Module):
         #     for f,w in zip(all_features,weights)
         # ]
 
-        if self.positive:
-            partial_bonds = [pb+b for pb,b in zip(partial_bonds, self.biases)]
+        # if self.positive:
+        #     partial_bonds = [pb+b for pb,b in zip(partial_bonds, self.biases)]
 
         total_bonds = sum(partial_bonds)
         if self.positive:
