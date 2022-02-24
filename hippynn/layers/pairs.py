@@ -76,7 +76,8 @@ class PeriodicPairIndexer(_PairIndexer):
         # shape is (n_images+2)**3 by 3
         combinator = torch.tensor(list(itertools.product(range(-n_images,n_images+1),repeat=3)))
         self.n_images=n_images
-        self.register_buffer("combinator",combinator.to(torch.float))
+        #self.register_buffer("combinator",combinator.to(torch.float))
+        self.register_buffer("combinator",combinator.to(torch.get_default_dtype()))
 
     def forward(self, coordinates, nonblank, real_atoms, inv_real_atoms, cells):
 
