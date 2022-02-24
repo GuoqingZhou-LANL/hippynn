@@ -8,10 +8,11 @@ import numpy as np
 Z =  torch.from_numpy(np.load("Z.npy"))
 R = torch.from_numpy(np.load("R.npy"))
 tmp = torch.from_numpy(np.load("x.npy"))
+xh = tmp[:,:,:3]
 x = tmp[:,:,:3]
 y = tmp[:,:,3:]
 
-dataset = TensorDataset(Z, R, x,y)
+dataset = TensorDataset(Z, R, xh,x,y)
 
 n_samples = len(dataset)
 
@@ -41,17 +42,17 @@ class LitHipnnLSTM(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, batch_idx):
-        Z, R, x, y = batch
-        y_hat, nonblank = self.model(Z, R, x)
+        Z, R, xh, x, y = batch
+        y_hat, nonblank = self.model(Z, R, xh, x)
         loss = torch.nn.functional.mse_loss(y_hat, y[nonblank], reduction='mean')
         self.log("train_loss", loss)
     
     def validation_step(self, batch, batch_indx):
-        Z, R, x, y = batch
-        y_hat, nonblank = self.model(Z, R, x)
+        Z, R, x, xh, y = batch
+        y_hat, nonblank = self.model(Z, R, xh, x)
         loss = torch.nn.functional.mse_loss(y_hat, y[nonblank], reduction='mean')
         self.log("val_loss", loss)
 
 model = LitHipnnLSTM()
-trainer = pl.Trainer(gpus=1, precision=64)
+trainer = pl.Trainer(precision=64)
 trainer.fit(model, train_loader, val_loader)

@@ -44,8 +44,8 @@ class MyModel(torch.nn.Module):
              self.pairindexer(coordinates, nonblank, real_atoms, inv_real_atoms)
         output_features = self.hipnn(indexed_features, pair_first, pair_second, pair_dist)
         #output_features = self.hipnn(indexed_features, pair_first, pair_second, pair_dist, pair_coord)
-        print(output_features[0].shape, output_features[1].shape)
-        raise
+        #print(output_features[0].shape, output_features[1].shape)
+        #raise
         for f in output_features:
             print(f.shape, f.dtype)
         output = self.predict(output_features)
@@ -82,7 +82,7 @@ class PredictAtom(torch.nn.Module):
 
 if __name__ == '__main__':
     dtype=torch.float64
-    device=torch.device("cuda")
+    device=torch.device("cpu")
     torch.set_default_dtype(dtype)
     import numpy as np
     import hippynn 
