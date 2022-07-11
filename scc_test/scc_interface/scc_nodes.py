@@ -376,6 +376,7 @@ class SplitMatrixNode(AutoKw, MultiNode):
     _auto_module_class = SplitMatrix
 
     def __init__(self,name,parents, traceless=False, module='auto',**kwargs):
+        parents = (parents,)
         self.module_kwargs = dict(traceless=traceless)
         super().__init__(name,parents,module=module,**kwargs)
 

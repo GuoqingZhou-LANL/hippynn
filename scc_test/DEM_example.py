@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import torch
 from scc_interface.scc_nodes import EEMNode, SQEPNode, PolarNode, MolTensorNode, QuadruNode, DEMNode, SplitMatrixNode
-from hippynn.interfaces.pyseqm_interface.callback import save_and_stop_after
+#from hippynn.interfaces.pyseqm_interface.callback import save_and_stop_after
 #np.set_printoptions(threshold=np.inf)
 
 #torch.cuda.set_device(0) # Don't try this if you want CPU training!
@@ -20,7 +20,7 @@ import hippynn
 hippynn.custom_kernels.set_custom_kernels (True)
 
 dataset_name = 'water_dimer_MP2-'    # Prefix for arrays in folder
-dataset_path = '/home/guoqingz/datasets/MP2/dataset'
+dataset_path = '/Users/guoqingz/lanl/SCC/hippynn/scc_test/MP2'
 
 netname = sys.argv[1]
 dirname = netname
@@ -68,43 +68,21 @@ with hippynn.tools.log_terminal("training_log_tag_%d.txt" % TAG,'wt'): # and tor
     from hippynn.graphs import inputs, networks, targets, physics
 
     from hippynn.experiment.serialization import load_checkpoint
-    path = "/home/guoqingz/HIPNN/scc_test1/D4T/"
-    try:
-        structure = load_checkpoint(path+"experiment_structure.pt", path+"best_checkpoint.pt")
-    except:
-        structure = torch.load(path+"experiment_structure.pt", map_location=device)
-        state = torch.load(path+"best_checkpoint.pt", map_location=device)
-        structure['training_modules'][0].load_state_dict(state['model'])
-        torch.random.set_rng_state(state['torch_rng_state'])
-    model0 = structure['training_modules'][0]
-    if isinstance(model0, torch.nn.DataParallel):
-        model0 = model0.module
 
-    species = model0.node_from_name("Z")
-    positions = model0.node_from_name("R")
-    # freeze these layers:
-    #for param in model0.parameters():
-    #    param.requires_grad = False
+    species = inputs.SpeciesNode(db_name="Z")
+    positions = inputs.PositionsNode(db_name="R")
 
-    #species = inputs.SpeciesNode(db_name="Z")
-    #positions = inputs.PositionsNode(db_name="R")
-    network1 = model0.node_from_name('HIPNN1')
-    network = networks.Hipnn("HIPNN", network1.parents, module_kwargs = network_params)
-    #network = model0.node_from_name("HIPNN")
+    network = networks.Hipnn("HIPNN", (species, positions), module_kwargs = network_params)
 
     #henergy = EEMNode("EEM", network)
     #henergy = SQEPNode("SQEP", network)
     henergy = DEMNode("DEM", network)
-    #henergy = model0.node_from_name("DEM")
-    
+
+    network1 = networks.Hipnn("HIPNN1", network.parents, module_kwargs = network_params)
     #network2 = networks.Hipnn("HIPNN", network.parents, module_kwargs = network_params)
     #henergy = SQEPNode("SEQP", (network, network2))
-    
-    #network1 = networks.Hipnn("HIPNN", network.parents, module_kwargs = network_params)
-    #network1 = networks.Hipnn("HIPNN1", (species, positions), module_kwargs = network_params)
-    #network1 = model0.node_from_name('HIPNN1')
-    #henergy1 = targets.HEnergyNode("HEnergy",network1)
-    henergy1 = model0.node_from_name("HEnergy")
+
+    henergy1 = targets.HEnergyNode("HEnergy",network1)
 
     ef = henergy.external_field
     dipole = henergy.dipole
@@ -351,8 +329,8 @@ with hippynn.tools.log_terminal("training_log_tag_%d.txt" % TAG,'wt'): # and tor
     from hippynn.experiment import train_model
     store_all_better=False
     store_best=True
-    callbacks = [save_and_stop_after(training_modules, controller, metric_tracker, store_all_better, store_best, [2,0,0,0])]
-    
+    #callbacks = [save_and_stop_after(training_modules, controller, metric_tracker, store_all_better, store_best, [2,0,0,0])]
+    callbacks = []
     train_model(training_modules=training_modules,
                 database=database,
                 controller=controller,
