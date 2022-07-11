@@ -17,7 +17,7 @@ class EEMNode(ExpandParents, AutoKw, MultiNode):
     _input_names = "species", "coordinates", "sigma", "Ld", "chi"
     _output_names = "charge", "coul_energy", "dipole", "quadrupole", "external_field"
     _main_output = "charge"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = EEM
 
     @_parent_expander.match(Network)
@@ -50,7 +50,7 @@ class SQENode(ExpandParents, AutoKw, MultiNode):
                    "pair_first", "pair_second", "pair_dist", "K", "Ld", "chi"
     _output_names = "charge", "coul_energy", "dipole", "quadrupole", "external_field"
     _main_output = "charge"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = SQE
 
     @_parent_expander.match(Network)
@@ -269,7 +269,7 @@ class DEMNode(ExpandParents, AutoKw, MultiNode):
                    "pair_first", "pair_second", "pair_coord", "w0", "w1"
     _output_names = "dipole", "coul_energy", "quadrupole", "external_field", "dipole_atom"
     _main_output = "dipole"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = DEM
 
     @_parent_expander.match(Network)
@@ -321,7 +321,7 @@ class DEMEFNode(ExpandParents, AutoKw, MultiNode):
                    "pair_first", "pair_second", "pair_coord", "w0", "w1", "Eext"
     _output_names = "dipole", "coul_energy", "quadrupole", "external_field", "dipole_atom"
     _main_output = "dipole"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = DEM
 
     @_parent_expander.match(Network, ExternalFieldNode)
@@ -372,7 +372,7 @@ class SplitMatrixNode(AutoKw, MultiNode):
     _input_names = "var"
     _output_names = "diag", "offdiag"
     _main_output = "diag"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = SplitMatrix
 
     def __init__(self,name,parents, traceless=False, module='auto',**kwargs):
@@ -388,7 +388,7 @@ class DEMPBCNode(ExpandParents, AutoKw, MultiNode):
                    "real_atoms", "mol_index", "sigma", "pair_dist1", "pair_first1", "pair_second1", "pair_coord1"
     _output_names = "dipole", "coul_energy", "quadrupole", "external_field", "dipole_atom"
     _main_output = "dipole"
-    _child_index_states = (IdxType.Molecules, )*len(_output_names)
+    _output_index_states = (IdxType.Molecules, )*len(_output_names)
     _auto_module_class = DEM_PBC
 
     @_parent_expander.match(Network)
