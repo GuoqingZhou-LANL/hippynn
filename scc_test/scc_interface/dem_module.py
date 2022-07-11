@@ -95,11 +95,18 @@ class DEM(torch.nn.Module):
         # put padding part of vec as 0
         vec_1 = torch.where(mask.unsqueeze(-1), vec_0, zero)
 
-        dis_0 = torch.linalg.norm(vec_1, dim=-1, keepdim=True)
+        #dis_0 = torch.linalg.norm(vec_1, dim=-1, keepdim=True)
         # put padding part as 1
-        dis_1 =  torch.where(mask.unsqueeze(-1), dis_0, one)
+        #dis_1 =  torch.where(mask.unsqueeze(-1), dis_0, one)
         # put diagonal part as 1
-        dis_2 = torch.where(maskd.unsqueeze(-1), one, dis_1)
+        #dis_2 = torch.where(maskd.unsqueeze(-1), one, dis_1)
+
+        dis_0_sq = torch.sum(vec_1**2, dim=-1, keepdim=True)
+        dis_1_sq =  torch.where(mask.unsqueeze(-1), dis_0_sq, one)
+        dis_2_sq = torch.where(maskd.unsqueeze(-1), one, dis_1_sq)
+        dis_2 = torch.sqrt(dis_2_sq)
+        dis_1 = torch.where(maskd.unsqueeze(-1), zero, dis_2)
+        dis_0 = torch.where(mask.unsqueeze(-1), dis_1, zero)
         
         L_ij = (3.0*vec_1.unsqueeze(-2)*vec_1.unsqueeze(-1) - \
             (dis_0**2).unsqueeze(-1)*torch.eye(3, dtype=dtype, device=device).reshape(1,1,1,3,3))/(dis_2**5).unsqueeze(-1)
