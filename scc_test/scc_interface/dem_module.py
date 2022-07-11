@@ -153,24 +153,12 @@ class DEM(torch.nn.Module):
         #print(A.reshape(-1)[maskpd])
         #A.reshape(-1)[maskpd] = 1.0
         #print(A.reshape(-1)[maskpd])
-        
-        #e, v = torch.linalg.eigh(A)
-        #print(e.shape, v.shape)
-        #print(e.min(dim=-1))
 
         b = (chi + Eext.unsqueeze(1)).reshape(n_molecule, -1) + bq
         p = torch.linalg.solve(A, b)
-        #def check(grad):
-        #    print(grad)
-        #    #if torch.isnan(grad).any():
-        #    #    print('nan in p grad')
-        #    #    raise
-        #p.register_hook(lambda grad:  check(grad))
+
         Ecoul = 0.5*torch.matmul(p.unsqueeze(1), torch.matmul(A, p.unsqueeze(2))) - torch.matmul(b.unsqueeze(1), p.unsqueeze(2))
-        #Ecoul = (p**2).sum(dim=-1, keepdim=True)
-        #mf = MyFunc.apply
-        #Ecoul = mf(p)
-        #Ecoul = (p**2).sum(dim=-1)
+
         dipole_atom = p.reshape(n_molecule, n_atom, 3)
 
         # remove COM
@@ -190,18 +178,5 @@ class DEM(torch.nn.Module):
         quadrupole = (R.unsqueeze(-1)*dipole_atom.unsqueeze(-2) + dipole_atom.unsqueeze(-1)*R.unsqueeze(-2)).sum(dim=1) \
             + quadrupole0
         dipole = dipole_atom.sum(dim=1) + dipole0
-        #return vec_1, dis_0 #, dis_0 #, dis_2, L_ij
-        #return rhat, K, f_ij, L_ij, A, b, dipole, Ecoul.reshape(-1,1), quadrupole, Eext, dipole_atom
         return dipole, Ecoul.reshape(-1,1), quadrupole, Eext, dipole_atom
 
-class MyFunc(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, x):
-        ctx.save_for_backward(x)
-        return (x**2).sum(dim=-1, keepdim=True)
-        
-    @staticmethod
-    def backward(ctx, grad_output):
-        #print(grad_output)
-        x, = ctx.saved_tensors
-        return 2.0*grad_output*x
