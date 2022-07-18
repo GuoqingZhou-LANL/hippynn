@@ -92,7 +92,7 @@ with hippynn.tools.log_terminal("training_log_tag_%d.txt" % TAG,'wt'): # and tor
     #quadrumol = MolTensorNode("QuadruMol", network)
     #quadru = quadru1 + quadrumol
     
-    #polarmol = MolTensorNode("PolarMol", network)
+    polarmol = MolTensorNode("PolarMol", network)
     #polar = MolTensorNode("PolarMol", network)
     polar = polar1 + polarmol
 
