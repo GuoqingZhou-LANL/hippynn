@@ -87,14 +87,14 @@ with hippynn.tools.log_terminal("training_log_tag_%d.txt" % TAG,'wt'): # and tor
     ef = henergy.external_field
     dipole = henergy.dipole
     quadru = henergy.quadrupole
-    #polar1 = PolarNode('Polar', (dipole, ef))
+    polar1 = PolarNode('Polar', (dipole, ef))
 
     #quadrumol = MolTensorNode("QuadruMol", network)
     #quadru = quadru1 + quadrumol
     
     #polarmol = MolTensorNode("PolarMol", network)
-    polar = MolTensorNode("PolarMol", network)
-    #polar = polar1 + polarmol
+    #polar = MolTensorNode("PolarMol", network)
+    polar = polar1 + polarmol
 
     molecule_energy = henergy.coul_energy + henergy1.mol_energy
     gradient = physics.GradientNode("Gradient", (molecule_energy, positions), sign=+1)
