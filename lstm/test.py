@@ -46,12 +46,14 @@ class LitHipnnLSTM(pl.LightningModule):
         y_hat, nonblank = self.model(Z, R, xh, x)
         loss = torch.nn.functional.mse_loss(y_hat, y[nonblank], reduction='mean')
         self.log("train_loss", loss)
+        return loss
     
     def validation_step(self, batch, batch_indx):
         Z, R, x, xh, y = batch
         y_hat, nonblank = self.model(Z, R, xh, x)
         loss = torch.nn.functional.mse_loss(y_hat, y[nonblank], reduction='mean')
         self.log("val_loss", loss)
+        return loss
 
 model = LitHipnnLSTM()
 trainer = pl.Trainer(precision=64)
